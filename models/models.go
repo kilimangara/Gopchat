@@ -1,49 +1,75 @@
 package models
 
-import "github.com/gorilla/websocket"
+import (
+	"github.com/gorilla/websocket"
+	"Gopchat/db"
+)
 
 type Client struct {
-	id int
+	Id int
 
-	connection *websocket.Conn
+	Connection *websocket.Conn
 
-	send chan []byte
+	Send chan []byte
 }
 
 type Message struct{
-	author int
+	Author int
 
-	message []byte
+	Message []byte
 
 }
 
 type Room struct {
-	clients map[int]*Client
+	id int
 
-	inbound chan *Message
+	Clients map[int]*Client
 
-	register chan *Client
+	Inbound chan *Message
 
-	unregister chan *Client
+	Register chan *Client
+
+	Unregister chan *Client
 }
 
-func NewRoom(ids []int)*Room{
+func NewRoom(ids []int, id int)*Room{
 	clients := make(map[int]*Client)
 	for i:= range ids{
 		append(clients, NewClient(i))
 	}
 	return &Room{
-		clients:clients,
-		inbound:make(chan *Message),
-		register:make(chan *Client),
-		unregister:make(chan *Client),
+		id:id,
+		Clients:clients,
+		Inbound:make(chan *Message),
+		Register:make(chan *Client),
+		Unregister:make(chan *Client),
 	}
 }
 
 func NewClient(id int) *Client{
 	return &Client{
-		id:id,
-		connection:SearchConnection(id),
-		send: make(chan []byte),
+		Id:id,
+		Connection:nil,
+		Send: make(chan []byte),
+	}
+}
+
+
+
+func (room *Room)run(){
+	for{
+		select {
+		case client:=<-room.Register:
+			room.Clients[client.Id]=client
+		case client:=<-room.Unregister:
+			delete(room.Clients, client.Id)
+		case message:=<-room.Inbound:
+			db.SaveMessage(message, room.id)
+			for _,client:= range room.Clients{
+				select {
+				case client.Send <- message:
+				}
+			}
+		}
 	}
 }
