@@ -37,8 +37,15 @@ func SearchConnection(id int)*Client{
 	return connectionsPools[id]
 }
 
-func AttachConnectionToClient(id int, conn *websocket.Conn){
+func AttachConnectionToClient(id int, conn *websocket.Conn)(*Client){
 	client:=SearchConnection(id)
 	client.Connection = conn
+	return client
+}
+
+func DetachConnectionFromClient(id int)(*Client){
+	client:=SearchConnection(id)
+	client.Connection=nil
+	return client
 }
 

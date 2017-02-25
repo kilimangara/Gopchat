@@ -54,6 +54,22 @@ func NewClient(id int) *Client{
 	}
 }
 
+func(client *Client) StartClient(){
+	db.SwitchClientConnected(client.Id)
+	defer db.SwitchClientDisconnected(client.Id)
+	go client.writePump()
+	client.readPump()
+
+}
+
+func(client *Client) writePump(){
+
+}
+
+func(client *Client) readPump(){
+
+}
+
 
 
 func (room *Room)run(){

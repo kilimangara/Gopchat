@@ -15,6 +15,7 @@ var(
 const(
 	CLIENTS_ROOM_BY_ID="SELECT user_room.id_user FROM user_room WHERE id_room=$1"
 	SAVE_MESSAGE="INSERT INTO messages VALUES(default, $1, $2,$3, $4)"
+	CONNECTION_CLIENT_QUERY="UPDATE user_table SET is_online=$1 WHERE id=$2"
 )
 
 
@@ -49,6 +50,22 @@ func SaveMessage(message *models.Message, idRoom int) error{
 	if(err!=nil){
 		log.Fatal("db.SaveMessage "+err)
 		return err
+	}
+	return nil
+}
+
+func SwitchClientConnected(id int) error{
+	_,err:=db.Exec(CONNECTION_CLIENT_QUERY, true, id)
+	if err!=nil{
+		log.Fatal("db.Switch "+err.Error())
+	}
+	return nil
+}
+
+func SwitchClientDisconnected(id int){
+	_,err:=db.Exec(CONNECTION_CLIENT_QUERY, false, id)
+	if err!=nil{
+		log.Fatal("db.Switch "+err.Error())
 	}
 	return nil
 }
