@@ -11,9 +11,11 @@ import (
 
 func main(){
 	db.Init()
-	defer db.Close()
 	tokens.Init()
-	defer tokens.Close()
+	defer func(){
+		db.Close()
+		tokens.Close()
+	}()
 	router:=httprouter.New()
 	router.GET("/ws", handlers.ConnectionHandler)
 	log.Fatal(http.ListenAndServe(":8080", router))

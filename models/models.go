@@ -6,6 +6,7 @@ import (
 	"log"
 )
 
+
 type Client struct {
 	Id int
 
@@ -35,12 +36,13 @@ type Room struct {
 	Quit chan bool
 }
 
+
 func NewRoom(ids []int, id int)*Room{
 	clients := make(map[int]*Client)
 	for i:= range ids{
 		append(clients, NewClient(i))
 	}
-	return &Room{
+	var room Room = Room{
 		id:id,
 		Clients:clients,
 		Inbound:make(chan *Message),
@@ -48,6 +50,8 @@ func NewRoom(ids []int, id int)*Room{
 		Unregister:make(chan *Client),
 		Quit:make(chan bool, 1),
 	}
+	go room.run()
+	return &room
 }
 
 func NewClient(id int) *Client{
@@ -73,8 +77,6 @@ func(client *Client) writePump(){
 func(client *Client) readPump(){
 
 }
-
-
 
 func (room *Room)run(){
 	for{

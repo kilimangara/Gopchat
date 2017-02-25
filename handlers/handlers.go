@@ -8,6 +8,15 @@ import (
 	"Gopchat/models"
 )
 
+type DataJSON map[string]interface{}
+
+var functions []func()
+
+type msgFromClient struct {
+	Type string `json:"type"`
+	Data DataJSON `json:"data"`
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:1024,
 	WriteBufferSize:1024,
@@ -31,6 +40,12 @@ func ConnectionHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Para
 
 	client:=models.AttachConnectionToClient(userId, conn)
 
+
 	client.StartClient()
+}
+
+func interceptInbondMessage(){
 
 }
+
+
