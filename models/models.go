@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/gorilla/websocket"
 	"Gopchat/db"
+	"log"
 )
 
 type Client struct {
@@ -30,6 +31,8 @@ type Room struct {
 	Register chan *Client
 
 	Unregister chan *Client
+
+	Quit chan bool
 }
 
 func NewRoom(ids []int, id int)*Room{
@@ -43,6 +46,7 @@ func NewRoom(ids []int, id int)*Room{
 		Inbound:make(chan *Message),
 		Register:make(chan *Client),
 		Unregister:make(chan *Client),
+		Quit:make(chan bool, 1),
 	}
 }
 
@@ -86,6 +90,9 @@ func (room *Room)run(){
 				case client.Send <- message:
 				}
 			}
+		case <-room.Quit:
+			log.Println("room stopped "+room.id)
+			return
 		}
 	}
 }
