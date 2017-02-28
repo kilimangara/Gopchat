@@ -96,9 +96,9 @@ func(client *Client) readPump(){
 	client.Connection.SetReadDeadline(time.Now().Add(pongWait))
 	client.Connection.SetPongHandler(func(data string) error { client.Connection.SetReadDeadline(time.Now().Add(pongWait)); return nil})
 
-	for {
-		_,message,err:=client.Connection.ReadMessage()
-	}
+	//for {
+	//	_,message,err:=client.Connection.ReadMessage()
+	//}
 
 }
 
