@@ -24,6 +24,7 @@ func GetRoomById(id int)(*Room, error){
 			return nil, err
 		}
 		room = NewRoom(ids,id)
+		roomPool[id] = room
 	}
 	return room, nil
 }

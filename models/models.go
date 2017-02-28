@@ -4,6 +4,22 @@ import (
 	"github.com/gorilla/websocket"
 	"Gopchat/db"
 	"log"
+	"Gopchat/handlers"
+	"time"
+)
+
+const (
+	writeWait = 10 * time.Second
+
+	pongWait = 60 * time.Second
+
+	pingPeriod = (pongWait * 9) / 10
+
+	maxMessageSize = 512
+)
+var(
+	newLine = []byte{'\n'}
+	space = []byte{' '}
 )
 
 
@@ -19,7 +35,6 @@ type Message struct{
 	Author int
 
 	Message []byte
-
 }
 
 type Room struct {
@@ -62,7 +77,7 @@ func NewClient(id int) *Client{
 	}
 }
 
-func(client *Client) StartClient(){
+func(client *Client) StartClient(interceptors []func(id int, msg *handlers.MsgFromClient)(bool, error)){
 	db.SwitchClientConnected(client.Id)
 	defer db.SwitchClientDisconnected(client.Id)
 	go client.writePump()
@@ -72,9 +87,18 @@ func(client *Client) StartClient(){
 
 func(client *Client) writePump(){
 
+
 }
 
 func(client *Client) readPump(){
+
+	client.Connection.SetReadLimit(maxMessageSize)
+	client.Connection.SetReadDeadline(time.Now().Add(pongWait))
+	client.Connection.SetPongHandler(func(data string) error { client.Connection.SetReadDeadline(time.Now().Add(pongWait)); return nil})
+
+	for {
+		_,message,err:=client.Connection.ReadMessage()
+	}
 
 }
 
