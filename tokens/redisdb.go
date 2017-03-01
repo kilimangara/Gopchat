@@ -10,11 +10,35 @@ var(
 	db *redis.Client
 )
 
+const(
+	ROOM_CHANNEL="ROOM"
+	USER_CHANNEL="USER"
+)
+
 func Init(){
 	db,_= builder.BuildRedisClient()
 	if err := db.Ping().Err(); err!=nil{
 		log.Fatal(err.Error())
 	}
+}
+
+func SubscribeToRoomChannel(){
+	pubsub, err:= db.Subscribe(ROOM_CHANNEL)
+	if err!=nil{
+		log.Fatal("pizda "+err.Error())
+	}
+	for{
+		msg, err1:= pubsub.ReceiveMessage()
+		if(err1!=nil){
+			//some error
+			continue
+		}
+
+	}
+}
+
+func SubscribeToUserChannel(){
+
 }
 
 

@@ -29,24 +29,35 @@ func GetRoomById(id int)(*Room, error){
 	return room, nil
 }
 
-func SearchConnection(id int)*Client{
-	connectionMutex.RLock()
-	defer connectionMutex.RUnlock()
+func searchConnection(id int)*Client{
 	if(connectionsPools[id]==nil){
-		connectionsPools[id]= NewClient(id)
+		connectionsPools[id]= NewEmptyClient(id)
 	}
 	return connectionsPools[id]
 }
 
 func AttachConnectionToClient(id int, conn *websocket.Conn)(*Client){
-	client:=SearchConnection(id)
+	connectionMutex.Lock()
+	defer connectionMutex.Unlock()
+	client:=searchConnection(id)
 	client.Connection = conn
 	return client
 }
 
 func DetachConnectionFromClient(id int)(*Client){
-	client:=SearchConnection(id)
+	connectionMutex.Lock()
+	defer connectionMutex.Unlock()
+	client:=searchConnection(id)
 	client.Connection=nil
 	return client
+}
+
+func AddRoomToPool(room *Room){
+	connectionMutex.Lock()
+	defer connectionMutex.Unlock()
+	for i,client:=range room.Clients{
+		client[i]=searchConnection(i)
+	}
+	roomPool[room.id]=room
 }
 

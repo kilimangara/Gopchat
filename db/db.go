@@ -14,6 +14,7 @@ var(
 
 const(
 	CLIENTS_ROOM_BY_ID="SELECT user_room.id_user FROM user_room WHERE id_room=$1"
+	ROOMS_CLIENT_BY_ID="SELECT user_room.id_room FROM user_room WHERE id_user=$1"
 	SAVE_MESSAGE="INSERT INTO messages VALUES(default, $1, $2,$3, $4)"
 	CONNECTION_CLIENT_QUERY="UPDATE user_table SET is_online=$1 WHERE id=$2"
 )
@@ -36,11 +37,31 @@ func GetRoom(id int)([]int, error){
 	}
 	for rows.Next(){
 		var i int
-		if err:=rows.Scan(&i); err!=nil{
+		if err:=rows.Scan(i); err!=nil{
 			log.Fatal("db.GetRoom "+err)
 			return result, err
 		}
 		append(result, i)
+	}
+	return result, nil
+}
+
+func GetRoomsId(userId int)([]int, error){
+	var result= []int{}
+	rows, err:= db.Query(ROOMS_CLIENT_BY_ID, userId)
+	defer rows.Close()
+	if err!=nil{
+		log.Fatal("db.GetRoomsId "+err.Error())
+		return result, err
+	}
+
+	for rows.Next(){
+		var i int
+		if err:=rows.Scan(i); err!=nil{
+			log.Fatal("db.GetRoomsId "+err.Error())
+			return result, err
+		}
+		result = append(result, i)
 	}
 	return result, nil
 }

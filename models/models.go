@@ -57,7 +57,7 @@ func NewRoom(ids []int, id int)*Room{
 	for i:= range ids{
 		append(clients, NewClient(i))
 	}
-	var room Room = Room{
+	var room= Room{
 		id:id,
 		Clients:clients,
 		Inbound:make(chan *Message),
@@ -72,8 +72,16 @@ func NewRoom(ids []int, id int)*Room{
 func NewClient(id int) *Client{
 	return &Client{
 		Id:id,
-		Connection:nil,
+		Connection:searchConnection(id),
 		Send: make(chan []byte),
+	}
+}
+
+func NewEmptyClient(id int)*Client{
+	return &Client{
+		Id:id,
+		Connection:nil,
+		Send:make(chan []byte),
 	}
 }
 
