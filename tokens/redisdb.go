@@ -21,6 +21,8 @@ const(
 
 func Init(){
 	db,_= builder.BuildRedisClient()
+	go SubscribeToUserChannel()
+	go SubscribeToRoomChannel()
 	if err := db.Ping().Err(); err!=nil{
 		log.Fatal(err.Error())
 	}
