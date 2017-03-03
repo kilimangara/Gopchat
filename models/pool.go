@@ -5,6 +5,7 @@ import (
 	"log"
 	"sync"
 	"github.com/gorilla/websocket"
+	"Gopchat/tokens"
 )
 
 var(
@@ -52,12 +53,16 @@ func DetachConnectionFromClient(id int)(*Client){
 	return client
 }
 
-func AddRoomToPool(room *Room){
+func AddRoomToPool(roomPattern *tokens.JSONMsg){
+	var clients []int =roomPattern["clients"]
+	var id int = roomPattern["id"]
 	connectionMutex.Lock()
 	defer connectionMutex.Unlock()
-	for i,client:=range room.Clients{
-		client[i]=searchConnection(i)
-	}
+	room:=NewRoom(clients, id)
 	roomPool[room.id]=room
+}
+
+func AddClientToRoom(userPattern *tokens.JSONMsg){
+	//adding user to some room
 }
 

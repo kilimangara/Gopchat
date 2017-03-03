@@ -4,11 +4,15 @@ import (
 	"gopkg.in/redis.v5"
 	"Gopchat/builder"
 	"log"
+	"Gopchat/models"
+	"encoding/json"
 )
 
 var(
 	db *redis.Client
 )
+
+type JSONMsg map[string]interface{}
 
 const(
 	ROOM_CHANNEL="ROOM"
@@ -28,12 +32,21 @@ func SubscribeToRoomChannel(){
 		log.Fatal("pizda "+err.Error())
 	}
 	for{
-		msg, err1:= pubsub.ReceiveMessage()
-		if(err1!=nil){
+		msg, err:= pubsub.ReceiveMessage()
+		if(err!=nil){
 			//some error
 			continue
 		}
-
+		room:= &JSONMsg{
+			"id":0,
+			"clients":[]int{},
+		}
+		err2:=json.Unmarshal([]byte(msg), &room)
+		if(err2!=nil){
+			//some error
+			continue
+		}
+		models.AddRoomToPool(room)
 	}
 }
 

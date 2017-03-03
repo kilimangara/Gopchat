@@ -12,6 +12,8 @@ import (
 func main(){
 	db.Init()
 	tokens.Init()
+	go tokens.SubscribeToRoomChannel()
+	go tokens.SubscribeToUserChannel()
 	defer func(){
 		db.Close()
 		tokens.Close()
