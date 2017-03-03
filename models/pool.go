@@ -53,7 +53,7 @@ func DetachConnectionFromClient(id int)(*Client){
 	return client
 }
 
-func AddRoomToPool(roomPattern *tokens.JSONMsg){
+func AddRoomToPool(roomPattern tokens.JSONMsg){
 	var clients []int =roomPattern["clients"]
 	var id int = roomPattern["id"]
 	connectionMutex.Lock()

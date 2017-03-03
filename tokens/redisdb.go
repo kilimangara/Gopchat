@@ -39,7 +39,7 @@ func SubscribeToRoomChannel(){
 			//some error
 			continue
 		}
-		room:= &JSONMsg{
+		room:= JSONMsg{
 			"id":0,
 			"clients":[]int{},
 		}
