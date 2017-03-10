@@ -6,6 +6,8 @@ import (
 	"log"
 	"Gopchat/handlers"
 	"time"
+	"bytes"
+	"encoding/json"
 )
 
 const (
@@ -51,7 +53,6 @@ type Room struct {
 	Quit chan bool
 }
 
-
 func NewRoom(ids []int, id int)*Room{
 	clients := make(map[int]*Client)
 	for i:= range ids{
@@ -89,24 +90,49 @@ func(client *Client) StartClient(interceptors []func(id int, msg *handlers.MsgFr
 	db.SwitchClientConnected(client.Id)
 	defer db.SwitchClientDisconnected(client.Id)
 	go client.writePump()
-	client.readPump()
+	client.readPump(interceptors)
 
 }
 
 func(client *Client) writePump(){
 
+	//ticker:=time.NewTicker(pingPeriod)
+
 
 }
 
-func(client *Client) readPump(){
+func(client *Client) readPump(interceptors []func(id int, msg *handlers.MsgFromClient)(bool, error)){
 
 	client.Connection.SetReadLimit(maxMessageSize)
 	client.Connection.SetReadDeadline(time.Now().Add(pongWait))
 	client.Connection.SetPongHandler(func(data string) error { client.Connection.SetReadDeadline(time.Now().Add(pongWait)); return nil})
+	var msgStruct * handlers.MsgFromClient
+	for {
+		_,message,err:=client.Connection.ReadMessage()
+		if(err!=nil){
+			if(websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway)) {
+				log.Println(err.Error())
+			}
+			break
+		}
 
-	//for {
-	//	_,message,err:=client.Connection.ReadMessage()
-	//}
+		message = bytes.TrimSpace(bytes.Replace(message,newLine, space,-1))
+		if errr:= json.Unmarshal(message, &msgStruct); errr!=nil{
+			errorMsg:= handlers.NewMsg(handlers.ERROR_BAD_FORMAT,"can't convert your shit")
+			client.Send<-[]bytes(errorMsg.Error())
+			continue
+		}
+		for _,interceptor:= range interceptors{
+			flag,err:= interceptor(client.Id, msgStruct)
+			if(flag) {
+				if (err != nil) {
+					client.Send <- []bytes(err.Error())
+				}
+				break
+			}
+		}
+	}
+
 
 }
 

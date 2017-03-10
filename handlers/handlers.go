@@ -13,6 +13,7 @@ const(
 	SEND_MESSAGE="SEND_MESSAGE"
 	ERROR_NO_SUCH_ROOM="NO_SUCH_ROOM"
 	ERROR_BAD_FORMAT="BAD_FORMAT"
+
 )
 
 type DataJSON map[string]interface{}
@@ -24,7 +25,7 @@ type MsgFromClient struct {
 	Data DataJSON `json:"data"`
 }
 
-func newMsg(typeError, description string)(*MsgFromClient){
+func NewMsg(typeError, description string)(*MsgFromClient){
 	return &MsgFromClient{
 		Type:typeError,
 		Data:DataJSON{
@@ -81,11 +82,11 @@ func interceptInbondMessage(id int,msg *MsgFromClient)(bool,error){
 		var to = msg.Data["to"]
 		room, err:=models.GetRoomById(to)
 		if err!=nil{
-			return true,newMsg(ERROR_NO_SUCH_ROOM,fmt.Sprintf("there is no room with id=%d",to))
+			return true, NewMsg(ERROR_NO_SUCH_ROOM,fmt.Sprintf("there is no room with id=%d",to))
 		}
 		byteMessage,err1 := json.Marshal(msg.Data["message"])
 		if err1!=nil{
-			return true,newMsg(ERROR_BAD_FORMAT, "there is no message field in json Data")
+			return true, NewMsg(ERROR_BAD_FORMAT, "there is no message field in json Data")
 		}
 		message:= models.Message{
 			Author:id,
