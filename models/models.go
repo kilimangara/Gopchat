@@ -18,6 +18,11 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	maxMessageSize = 512
+
+	NEW_MESSAGE="NEW_MESSAGE"
+
+	NEW_USER ="NEW_USER"
+
 )
 var(
 	newLine = []byte{'\n'}
@@ -94,19 +99,42 @@ func(client *Client) StartClient(interceptors []func(id int, msg *handlers.MsgFr
 
 }
 
+func buildResponse(typeOfEvent string)([]byte, error){
+	var response map[string]string = make(map[string]string)
+	response["type"]=typeOfEvent
+	return json.Marshal(response)
+}
+
 func(client *Client) writePump(){
 
-	//ticker:=time.NewTicker(pingPeriod)
-
-
+	ticker:=time.NewTicker(pingPeriod)
+	 defer func(){
+		 ticker.Stop()
+		 DetachConnectionFromClient(client.Id)
+	 }()
+	for {
+		select{
+		case message, ok:= <- client.Send:
+			client.Connection.SetWriteDeadline(time.Now().Add(writeWait))
+			if !ok{
+				client.Connection.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+			w, err:= client.Connection.NextWriter(websocket.TextMessage)
+			if err!=nil{
+				return
+			}
+			w.Write(message)
+		}
+	}
 }
 
 func(client *Client) readPump(interceptors []func(id int, msg *handlers.MsgFromClient)(bool, error)){
-
+	defer DetachConnectionFromClient(client.Id)
 	client.Connection.SetReadLimit(maxMessageSize)
 	client.Connection.SetReadDeadline(time.Now().Add(pongWait))
 	client.Connection.SetPongHandler(func(data string) error { client.Connection.SetReadDeadline(time.Now().Add(pongWait)); return nil})
-	var msgStruct * handlers.MsgFromClient
+	var msgStruct *handlers.MsgFromClient
 	for {
 		_,message,err:=client.Connection.ReadMessage()
 		if(err!=nil){
@@ -145,9 +173,10 @@ func (room *Room)run(){
 			delete(room.Clients, client.Id)
 		case message:=<-room.Inbound:
 			db.SaveMessage(message, room.id)
+			msg,_:=buildResponse(NEW_MESSAGE)
 			for _,client:= range room.Clients{
-				select {
-				case client.Send <- message:
+				if(client.Id != message.Author){
+					client<-msg
 				}
 			}
 		case <-room.Quit:

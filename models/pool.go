@@ -49,6 +49,7 @@ func DetachConnectionFromClient(id int)(*Client){
 	connectionMutex.Lock()
 	defer connectionMutex.Unlock()
 	client:=searchConnection(id)
+	client.Connection.Close()
 	client.Connection=nil
 	return client
 }
